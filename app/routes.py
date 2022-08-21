@@ -1,7 +1,9 @@
 from app import app
 from datetime import datetime
 import re
-from flask import render_template
+from flask import render_template, request
+from app.models import User
+from app import db
 
 @app.route('/')
 @app.route('/index')
@@ -24,3 +26,22 @@ def hello_there(name):
 
     content = "Hello there, " + clean_name + "! It's " + formatted_now
     return content
+@app.route("/add/user", methods=['GET'])
+def addUser():
+    args = request.args
+    username = args.get("username")
+    password = args.get("password")
+    email = args.get("email")
+    #returnString = "Username: " + username + " Password: " + password + "Email: " + email
+    newUser = User(username=username, password=password, email=email)
+    db.session.add(newUser)
+    db.session.commit()
+    return "User added"
+@app.route("/users")
+def getAllUsers():
+    users = User.query.all()
+    userStrings = ""
+    for user in users:
+        userStrings += user.username + " " + user.password + " " + user.email + "<br>"
+    return userStrings
+    
