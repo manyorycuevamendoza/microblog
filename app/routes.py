@@ -8,7 +8,7 @@ from app import db
 @app.route('/')
 @app.route('/index')
 def index():
-    user = {'username': 'Miguel'}
+    user = {'username': 'Jose'}
     return render_template('index.html', title='Home', user=user)
 @app.route("/hello/<name>")
 def hello_there(name):
