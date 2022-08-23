@@ -9,3 +9,12 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rating = db.Column(db.Integer)
+    description = db.Column(db.String(120))
+    
+    def __repr__(self) -> str:
+        return '<Review {} {}>'.format(self.rating, self.description)

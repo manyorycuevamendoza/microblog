@@ -2,7 +2,7 @@ from app import app
 from datetime import datetime
 import re
 from flask import render_template, request
-from app.models import User
+from app.models import User, Review
 from app import db
 
 @app.route('/')
@@ -44,4 +44,9 @@ def getAllUsers():
     for user in users:
         userStrings += user.username + " " + user.password + " " + user.email + "<br>"
     return userStrings
-    
+@app.route("/reviews/add")
+def addReview():
+    newReview = Review(rating=3, description="Very good movie.")
+    db.session.add(newReview)
+    db.session.commit()
+    return "Review added"
