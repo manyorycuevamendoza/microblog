@@ -16,5 +16,5 @@ class Review(db.Model):
     rating = db.Column(db.Integer)
     description = db.Column(db.String(120))
     
-    def __repr__(self) -> str:
+    def __repr__(self):
         return '<Review {} {}>'.format(self.rating, self.description)

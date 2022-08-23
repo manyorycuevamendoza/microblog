@@ -37,16 +37,34 @@ def addUser():
     db.session.add(newUser)
     db.session.commit()
     return "User added"
+@app.route("/addNumbers", methods=["GET"])
+def add():
+    args = request.args
+    val1 = int(args.get("val1"))
+    val2 = int(args.get("val2"))
+    return str(val1+val2)
 @app.route("/users")
 def getAllUsers():
     users = User.query.all()
+    print(users)
     userStrings = ""
     for user in users:
         userStrings += user.username + " " + user.password + " " + user.email + "<br>"
     return userStrings
-@app.route("/reviews/add")
+@app.route("/reviews/add", methods=["GET"])
 def addReview():
-    newReview = Review(rating=3, description="Very good movie.")
+    args = request.args
+    rating = args.get("rating")
+    description = args.get("description")
+    newReview = Review(rating=rating, description=description)
     db.session.add(newReview)
     db.session.commit()
     return "Review added"
+@app.route("/reviews")
+def getReviews():
+    reviews = Review.query.all()
+    print(reviews)
+    reviewString = ""
+    for review in reviews:
+        reviewString += "Rating: " + str(review.rating) + "/5. Description: " + review.description + "<br>"
+    return reviewString
