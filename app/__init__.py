@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask #para crear programas
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 
