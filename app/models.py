@@ -18,3 +18,5 @@ class Review(db.Model):
     
     def __repr__(self):
         return '<Review {} {}>'.format(self.rating, self.description)
+
+        
