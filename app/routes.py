@@ -10,7 +10,15 @@ from app import db
 def index():
     user = {'username': 'Manyory Omar Diego'}
     return render_template('index.html', title='Home', user=user)
+@app.route('/indexdinamico',methods=['GET'])
+def indexdinamico():
+    args=request.args
+    title=args.get('title')
+    username=args.get('username')
+    user={'username':username}
+    return render_template('index.html',title=title,user=user)
 @app.route("/hello/<name>")
+
 def hello_there(name):
     now = datetime.now()
     formatted_now = now.strftime("%A, %d %B, %Y at %X")
