@@ -91,12 +91,15 @@ def getReview(id):
     review = Review.query.filter(Review.id==id).first()
     print(review)
     return "Rating: " + str(review.rating) + "/5. Description: " + review.description
+
+
+    """
 @app.route('/consolidarPaises')
 def consolidarPaises():
     estudiantes=Estudiante.query.all()
     paises={}
-
-    """#invoca al servicio web
+    
+    #invoca al servicio web
     #se recibe en un diccionario
     for estudiante in estudiantes:
         name=estudiante.nombre
