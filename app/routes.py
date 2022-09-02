@@ -40,6 +40,16 @@ def addUser():
     username = args.get("username")
     password = args.get("password")
     email = args.get("email")
+
+    if(username==None):
+        return "Falta parametro username"
+    elif(password==None):
+        return "Falta parametro password"
+    elif(email==None):
+        return "Falta parametro email"
+
+    if(not verifyPassword(password)):
+        return "Password no valida"
     #returnString = "Username: " + username + " Password: " + password + "Email: " + email
     newUser = User(username=username, password=password, email=email)
     db.session.add(newUser)
@@ -76,3 +86,42 @@ def getReviews():
     for review in reviews:
         reviewString += "Rating: " + str(review.rating) + "/5. Description: " + review.description + "<br>"
     return reviewString
+@app.route("/reviews/<id>")
+def getReview(id):
+    review = Review.query.filter(Review.id==id).first()
+    print(review)
+    return "Rating: " + str(review.rating) + "/5. Description: " + review.description
+@app.route('/consolidarPaises')
+def consolidarPaises():
+    estudiantes=Estudiante.query.all()
+    paises={}
+
+    """#invoca al servicio web
+    #se recibe en un diccionario
+    for estudiante in estudiantes:
+        name=estudiante.nombre
+        url="https://api.nationalize.io/?name="+name
+        result=requests.get(url).json()
+        pais=result["country"][0]["country_id"]
+        #print(pais)
+        if pais in paises:
+            paises[pais]+=1
+        else:
+            paises[pais]=1
+    return paises
+
+    #####estudiantes
+@app.route("/estudiantes/create", methods=["GET"])
+def createEstudiante():
+    args = request.args
+    codigo=args.get("codigo")
+    nombre = args.get("nombre")
+    apellido = args.get("apellido")
+
+    newEstudiante = Estudiante(codigo=codigo, nombre=nombre, apellido=apellido)
+    db.session.add(newEstudiante)
+    db.session.commit()
+    return "Estudiante creado"""
+
+def verifyPassword(password):
+    return len(password)>=10
