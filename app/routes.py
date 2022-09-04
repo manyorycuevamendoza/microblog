@@ -8,7 +8,7 @@ from app import db
 @app.route('/')
 @app.route('/index')
 def index():
-    user = {'username': 'Manyory Omar Diego'}
+    user = {'username': 'Manyory'}
     return render_template('index.html', title='Home', user=user)
 @app.route('/indexdinamico',methods=['GET'])
 def indexdinamico():
