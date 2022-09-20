@@ -2,8 +2,11 @@ from app import app
 from datetime import datetime
 import re
 from flask import render_template, request
-from app.models import User, Review
+from app.models import User, Review, Estudiante#importamos los modelos que vamos a utilizar en rutad
 from app import db
+import requests
+import json
+from flask_cors import CORS, cross_origin
 #from 
 @app.route('/')
 @app.route('/index')
@@ -42,28 +45,38 @@ def indexdinamico(): # index dinamico es para que se pueda acceder a la pagina d
     return render_template('index.html',title=title,user=user)
 
 #-----User routes-----
+##añade usuario
 @app.route("/add/user", methods=['GET'])
 #localhost:5000/add/user?usernameee=cueva&password=76591212&email=cueva@utec.edu.pe
 #Falta parámetro username
 def addUser():
-    args = request.args
-    username = args.get("username")
-    password = args.get("password")
-    email = args.get("email")
-
-    if(username==None):
-        return "Falta parametro username"
-    elif(password==None):
-        return "Falta parametro password"
-    elif(email==None):
-        return "Falta parametro email"
-
-    if(not verifyPassword(password)):
-        return "Password no valida"
-    #returnString = "Username: " + username + " Password: " + password + "Email: " + email
-    newUser = User(username=username, password=password, email=email)
-    db.session.add(newUser)
-    db.session.commit()
+        #usamos el try para poder recuperarnos de algun errro
+    try:
+        #esta ruta espera tres parametros
+        args = request.args
+        username = args.get("username")
+        password = args.get("password")
+        email = args.get("email")
+        #el usuario podria no mandar los parametros, hay que verificar que sean validos
+        if (username == None):
+            return "Falta parametro username"
+        elif (password == None):
+            return "Falta parametro password"
+        elif (email == None):
+            return "Falta parametro email"
+        
+        if (not verifyPassword(password)):
+            return "Contrasena invalida"
+        #creamos un nuevo usuario de clase User 
+        newUser = User(username=username, password=password, email=email)
+        #agregamos el usuario a la sesion actual de la db
+        db.session.add(newUser)
+        #mandamos los cambios para que persistan en la db
+        db.session.commit()
+    #en caso ocurra un error podemos recuperarnos sin romper el flujo del programa    
+    except Exception as error:
+        print("Invalid user", error)
+        return "Invalid user"       
     return "User added"
 
 
@@ -71,10 +84,12 @@ def addUser():
 def add():
     #http://localhost:5000/addNumbers?val1=2&val2=hola
     #val2 no es un numero
+    #http://localhost:5000/addNumbers?val1=2&val2=3
+    #5
     args = request.args
-    try: #es para que no se caiga el programa si no se ingresa un numero
+    try: #es para que no se caiga el programa si no se ingresa un numero, osea manejar el error
         val1 = int(args.get("val1"))
-    except Exception as error:
+    except Exception as error:#viene de psycotescrud.py
         print(error)
         return "val1 no es un numero"
     try:
@@ -83,23 +98,25 @@ def add():
         print(error)
         return "val2 no es un numero"
     return str(val1+val2)
-
+#mostar usuarios
 @app.route("/users")
 #http://localhost:5000/users
 #se observara todos los usuarios que estan en la base de datos
 def getAllUsers():
+    #podemos pedir la informacion de varias filas de la tabla
+    #al mismo tiempo usando 'query.all()', esto devuelve una lista
     users = User.query.all()
     print(users)
     userStrings = ""
     for user in users:
-        userStrings += user.username + " " + user.password + " " + user.email + "<br>"
+        userStrings += user.username + " " + user.password + " " + user.email + "<br>"#el br es el cambio de linea en html
     return userStrings
 
 
  #-----------Reviews   
-@app.route("/reviews/add", methods=["GET"])
+@app.route("/reviews/add", methods=["GET"] )
 def addReview():
-    args = request.args
+    args = request.args# reuqest es para obtener los datos que se envian por la url
     rating = args.get("rating")
     if rating >5 or rating <0:
         return "ingrese un rating entre 0 y 5"
@@ -121,42 +138,50 @@ def getReviews():
 @app.route("/reviews/<id>/pid")#se coloca <id> para que se pueda ingresar un id ya que es dinamico y se puede acceder desde cualquier parte
 def getReview(id,pid):
     print(pid)
+    #query nos permite filtrar datos basado en ciertas condiciones
+    #aqui estamos filtrando la fila que tenga el mismo id que se paso en el URL
+    #la funcion first() coge el primer valor del resultado
     review = Review.query.filter(Review.id==id).first()
     print(review)
     if review == None:
         return "no existe"
     return "Rating: " + str(review.rating) + "/5. Description: " + review.description
+#Esta ruta se comunica con un API externo, nationalize,
+#que retorna un objeto JSON con probabilidades que el nombre
+#dado venga de un pais especifico
+#este es un ejemplo de un request
+#https://api.nationalize.io/?name=jose
+#y un ejemplo de la respuesta
+# {
+#   "name": "jose",
+#   "country": [
+#     {
+#       "country_id": "VE",
+#       "probability": 0.05786648552663837
+#     },
+#     {
+#       "country_id": "ES",
+#       "probability": 0.05710861497406078
+#     },
+#     {
+#       "country_id": "SV",
+#       "probability": 0.05705595515479477
+#     }
+#   ]
+# }
 
-def verifyPassword(password):
-    return len(password)>=10
 
-"""Diseñar una clase Usuario en Flask-SQLAlchemy que tenga las siguientes propiedades: id, username, 
-password, email. Implementar la clase de manera apropiada para que el id sea la llave primaria y se 
-calcule automáticamente, y los tipos de datos apropiados para las demás columnas. 
-Implementar un servidor de Flask que permite interactuar al cliente de la siguientes maneras: 
-• Agregar un usuario: El cliente manda una solicitud GET con los parámetros y valores adecuados. 
-Además, verificar que la contraseña tenga por lo menos longitud 8 y que tenga un número y una 
-letra. 
-• Actualizar un usuario: El cliente manda una solicitud GET con el nombre de usuario como 
-parámetro de la ruta, y parámetros de la URL a actualizar (ej. 
-localhost:5000/users/update/<username>?password=contrasena123). La solicitud puede o no 
-tener varios parámetros a actualizar 
-• Solicitar un usuario: El cliente manda una solicitud GET con el nombre de usuario como 
-parámetro de la ruta (ej. localhost:5000/users/<username>). El servidor devuelve toda la 
-información del usuario menos el id. 
-• Borrar un usuario: El cliente manda una solicitud GET con el nombre del usuario como 
-parámetro de la ruta (ej. localhost:5000/users/delete/<username>) """
-
-
-@app.route('/consolidarPaises')
+@app.route('/consolidarPaises')# esta ruta es para consolidar los paises de los usuarios y mostrarlos en una tabla html
 def consolidarPaises():
+    #names=["pedro","jose","miguel","john","paul","george","ringo"]
     estudiantes=Estudiante.query.all()
     paises={}
+    #for name in names:
     for estudiante in estudiantes:
         name=estudiante.nombre
-        url="https://api.nationalize.io/?name="+name
+        url = "https://api.nationalize.io/?name=" + name
         result=requests.get(url).json()
-        pais=result['country'][0]['country_id']
+        pais=result["country"][0]["country_id"]
         if pais in paises:
             paises[pais]+=1
         else:
